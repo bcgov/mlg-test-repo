@@ -35,7 +35,7 @@ jobs:
 
       - name: Update version
         run: |
-          yq -i '${{ env.YAML_PROPERTY_PATH }} = ${{ github.run_number }} ' ${{ env.TARGET_FILE }}
+          yq -i '${{ env.YAML_PROPERTY_PATH }} = "${{ github.run_number }}"' ${{ env.TARGET_FILE }}
     
       - name: Commit and push update
         run: |
