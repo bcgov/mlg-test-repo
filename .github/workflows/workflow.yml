@@ -1,36 +1,45 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
-# Controls when the workflow will run
+env:
+  TARGET_FILE: 'config.yaml'
+  WORKING_DIR: '.'
+  YAML_PROPERTY_PATH: ''
+
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
+  
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Setup gitops repo access
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.MANIFEST_REPO_DEPLOY_KEY }}  
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Checkout CD repo
+        uses: actions/checkout@v4   
+        with:
+          ssh-key: ${{ secrets.MANIFEST_REPO_DEPLOY_KEY }}
+          repository: ${{ secrets.MANIFEST_REPO }}
+          
+      - name: 'Configure git'
+      # From https://github.com/orgs/community/discussions/26560#discussioncomment-3531273
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Update version
+        run: |
+          cd ${{ env.WORKING_DIR }}
+          yq -i '${{ env.YAML_PROPERTY_PATH }} = ${{ github.run_number }} ' ${{ env.TARGET_FILE }}
+    
+      - name: Commit and push update
+        run: |
+          git commit -am "Update version in config"
+          git push origin
