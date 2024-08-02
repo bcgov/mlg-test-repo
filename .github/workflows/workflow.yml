@@ -2,7 +2,6 @@ name: CI
 
 env:
   TARGET_FILE: 'config.yaml'
-  WORKING_DIR: '.'
   YAML_PROPERTY_PATH: ''
 
 on:
@@ -36,7 +35,6 @@ jobs:
 
       - name: Update version
         run: |
-          cd ${{ env.WORKING_DIR }}
           yq -i '${{ env.YAML_PROPERTY_PATH }} = ${{ github.run_number }} ' ${{ env.TARGET_FILE }}
     
       - name: Commit and push update
