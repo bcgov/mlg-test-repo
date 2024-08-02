@@ -2,7 +2,7 @@ name: CI
 
 env:
   TARGET_FILE: 'config.yaml'
-  YAML_PROPERTY_PATH: ''
+  YAML_PROPERTY_PATH: 'version'
 
 on:
   push:
